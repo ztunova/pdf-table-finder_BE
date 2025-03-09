@@ -1,0 +1,42 @@
+import os
+import shutil
+
+from src.constants import PATH_TO_IMGS, PATH_TO_PDFS
+from src.exceptions.custom_exceptions import NotAPdfFileException
+
+
+class FileHandler:
+    def __init__(self):
+        if not os.path.exists(PATH_TO_PDFS):
+            os.makedirs(PATH_TO_PDFS)
+
+        if not os.path.exists(PATH_TO_IMGS):
+            os.makedirs(PATH_TO_IMGS)
+
+    def get_directory_content(self, directory_path: str) -> list[str]:
+        directory_content: list[str] = os.listdir(directory_path)
+        directory_content.remove('README.md')
+        return directory_content
+    
+    def get_pdf_name_with_directory(self) -> str:
+        pdf_file_name = self.get_directory_content(PATH_TO_PDFS)[0]
+        return os.path.join(PATH_TO_PDFS, pdf_file_name)
+
+    def _clean_up_pdf_storage_(self):
+        pdf_dir_content: list[str] = self.get_directory_content(PATH_TO_PDFS)
+        print(pdf_dir_content)
+        for pdf_name in pdf_dir_content:
+            path = os.path.join(PATH_TO_PDFS, pdf_name)
+            os.remove(path)
+
+    def upload_pdf_file(self, file):
+        self._clean_up_pdf_storage_()
+        
+        if not file.filename.endswith('.pdf'):
+            raise NotAPdfFileException()
+    
+        file_with_path = os.path.join(PATH_TO_PDFS, file.filename)
+    
+        # Save the uploaded file
+        with open(file_with_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
