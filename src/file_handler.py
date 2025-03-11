@@ -24,13 +24,13 @@ class FileHandler:
         pdf_file_name: str = self.get_directory_content(PATH_TO_PDFS)[0]
         return os.path.join(PATH_TO_PDFS, pdf_file_name)
 
-    def _clean_up_directory_content_(self, direcotry_path: str) -> None:
+    def __clean_up_directory_content(self, direcotry_path: str) -> None:
         dir_content: list[str] = self.get_directory_content(direcotry_path)
         for file_name in dir_content:
             path = os.path.join(direcotry_path, file_name)
             os.remove(path)
 
-    def __pdf_to_images__(self) -> None:
+    def __pdf_to_images(self) -> None:
         pdf_name_with_dir = self.get_pdf_name_with_directory()
         doc = pymupdf.open(pdf_name_with_dir)
         for page in doc:
@@ -39,8 +39,8 @@ class FileHandler:
             pix.save(save_img_path)
 
     def upload_pdf_file(self, file):
-        self._clean_up_directory_content_(PATH_TO_PDFS)
-        self._clean_up_directory_content_(PATH_TO_IMGS)
+        self.__clean_up_directory_content(PATH_TO_PDFS)
+        self.__clean_up_directory_content(PATH_TO_IMGS)
 
         if not file.filename.endswith(".pdf"):
             raise NotAPdfFileException()
