@@ -6,7 +6,8 @@ class NotAPdfFileException(HTTPException):
         self.status_code = status.HTTP_400_BAD_REQUEST
         self.detail = "Uploaded file must be .pdf"
 
-class InvalidDetectionMethod(HTTPException):
+
+class InvalidTableMethod(HTTPException):
     def __init__(self, detection_method):
         self.status_code = status.HTTP_400_BAD_REQUEST
         self.detail = f"Unsupported detection method: {detection_method}"
