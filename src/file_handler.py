@@ -3,7 +3,7 @@ import shutil
 
 import pymupdf
 
-from src.constants import PATH_TO_IMGS, PATH_TO_PDFS
+from src.constants import PATH_TO_IMGS, PATH_TO_PDFS, PATH_TO_RESULTS
 from src.exceptions.custom_exceptions import NotAPdfFileException
 
 
@@ -23,6 +23,10 @@ class FileHandler:
     def get_pdf_name_with_directory(self) -> str:
         pdf_file_name: str = self.get_directory_content(PATH_TO_PDFS)[0]
         return os.path.join(PATH_TO_PDFS, pdf_file_name)
+
+    def get_pdf_result_output(self) -> str:
+        pdf_file_name: str = self.get_directory_content(PATH_TO_PDFS)[0]
+        return os.path.join(PATH_TO_RESULTS, pdf_file_name)
 
     def __clean_up_directory_content(self, direcotry_path: str) -> None:
         dir_content: list[str] = self.get_directory_content(direcotry_path)
