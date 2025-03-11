@@ -1,14 +1,32 @@
+from typing import Annotated
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
+from fastapi.responses import JSONResponse
 
-from src.custom_types.api_types import SingleTableRequest, TableDetectionMethod, TableExtractionMethod
+from src.custom_types.api_types import SingleTableRequest, TableDetectionMethod, TableDetectionResponse, TableExtractionMethod
+from src.custom_types.interfaces import TableDetectionInterface
 from src.file_handler import FileHandler
+from src.pdf_processing.pymu_processing import PymuProcessing
+from src.pdf_processing.yolo_processing import YoloProcessing
+from src.service.table_detection_service import TableDetectionService
 
 tags = ["PDF"]
 pdf_router = APIRouter(prefix="/pdf", tags=tags)
 
 
-def get_file_handler():
+def get_file_handler() -> FileHandler:
     return FileHandler()
+
+def get_yolo_strategy() -> TableDetectionInterface:
+    return YoloProcessing()
+
+def get_pymu_strategy() -> TableDetectionInterface:
+    return PymuProcessing()
+
+def get_table_detection_service(
+        pymu_detection: Annotated[TableDetectionInterface, Depends(get_pymu_strategy)],
+        yolo_detection: Annotated[TableDetectionInterface, Depends(get_yolo_strategy)],
+) -> TableDetectionService:
+    return TableDetectionService(pymu_detection=pymu_detection, yolo_detection=yolo_detection)
 
 
 # mozno export -> dostane data a format, vrati subors
@@ -23,12 +41,13 @@ def upload_pdf_file(
 
 
 # get all tables based on detection method -> dostane v requeste detection method, vrati mapu {strana: [tabulky], ...}
-@pdf_router.get("/all_tables/{detection_method}")
+@pdf_router.get("/all_tables/{detection_method}", response_model=TableDetectionResponse, status_code=status.HTTP_200_OK)
 def get_all_tables(
     detection_method: TableDetectionMethod,
+    table_detection_service: Annotated[TableDetectionService, Depends(get_table_detection_service)]
 ):
-    print(detection_method)
-    return Response(status_code=status.HTTP_200_OK)
+    result = table_detection_service.detect_tables(detection_method=detection_method)
+    return result
 
 
 # extract table based on extraction method -> dostane v requeste detection method a bbox, vrati [[riadok tabulky], ...]
