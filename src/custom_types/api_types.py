@@ -6,6 +6,11 @@ from pydantic import BaseModel
 class TableDetectionResponse(BaseModel):
     tables: Dict[int, List[Tuple[float, float, float, float]]]
 
+
+class TableExtractionResponse(BaseModel):
+    table_data: List[List[str]]
+
+
 class SingleTableRequest(BaseModel):
     pdf_page_number: int
     upper_left_x: float

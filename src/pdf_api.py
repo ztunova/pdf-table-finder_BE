@@ -2,12 +2,20 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from src.custom_types.api_types import SingleTableRequest, TableDetectionMethod, TableDetectionResponse, TableExtractionMethod
-from src.custom_types.interfaces import TableDetectionInterface
+from src.custom_types.api_types import (
+    SingleTableRequest,
+    TableDetectionMethod,
+    TableDetectionResponse,
+    TableExtractionMethod,
+    TableExtractionResponse,
+)
+from src.custom_types.interfaces import TableDetectionInterface, TableExtractionInterface
 from src.file_handler import FileHandler
+from src.pdf_processing.openai_processing import OpenAiProcessing
 from src.pdf_processing.pymu_processing import PymuProcessing
 from src.pdf_processing.yolo_processing import YoloProcessing
 from src.service.table_detection_service import TableDetectionService
+from src.service.table_extraction_service import TableExtractionService
 
 tags = ["PDF"]
 pdf_router = APIRouter(prefix="/pdf", tags=tags)
@@ -16,17 +24,34 @@ pdf_router = APIRouter(prefix="/pdf", tags=tags)
 def get_file_handler() -> FileHandler:
     return FileHandler()
 
-def get_yolo_strategy() -> TableDetectionInterface:
+
+def get_yolo_strategy() -> TableDetectionInterface | TableExtractionInterface:
     return YoloProcessing()
 
-def get_pymu_strategy() -> TableDetectionInterface:
+
+def get_pymu_strategy() -> TableDetectionInterface | TableExtractionInterface:
     return PymuProcessing()
 
+
+def get_openai_strategy() -> TableExtractionInterface:
+    return OpenAiProcessing()
+
+
 def get_table_detection_service(
-        pymu_detection: Annotated[TableDetectionInterface, Depends(get_pymu_strategy)],
-        yolo_detection: Annotated[TableDetectionInterface, Depends(get_yolo_strategy)],
+    pymu_detection: Annotated[TableDetectionInterface, Depends(get_pymu_strategy)],
+    yolo_detection: Annotated[TableDetectionInterface, Depends(get_yolo_strategy)],
 ) -> TableDetectionService:
     return TableDetectionService(pymu_detection=pymu_detection, yolo_detection=yolo_detection)
+
+
+def get_table_extraction_service(
+    pymu_extraction: Annotated[TableExtractionInterface, Depends(get_pymu_strategy)],
+    yolo_extraction: Annotated[TableExtractionInterface, Depends(get_yolo_strategy)],
+    openai_extraction: Annotated[TableExtractionInterface, Depends(get_openai_strategy)],
+) -> TableExtractionService:
+    return TableExtractionService(
+        pymu_extraction=pymu_extraction, yolo_extraction=yolo_extraction, gpt_extraction=openai_extraction
+    )
 
 
 # mozno export -> dostane data a format, vrati subors
@@ -44,16 +69,17 @@ def upload_pdf_file(
 @pdf_router.get("/all_tables/{detection_method}", response_model=TableDetectionResponse, status_code=status.HTTP_200_OK)
 def get_all_tables(
     detection_method: TableDetectionMethod,
-    table_detection_service: Annotated[TableDetectionService, Depends(get_table_detection_service)]
+    table_detection_service: Annotated[TableDetectionService, Depends(get_table_detection_service)],
 ):
     result = table_detection_service.detect_tables(detection_method=detection_method)
     return result
 
 
 # extract table based on extraction method -> dostane v requeste detection method a bbox, vrati [[riadok tabulky], ...]
-@pdf_router.get("/table/{extraction_method}")
+@pdf_router.get("/table/{extraction_method}", response_model=TableExtractionResponse, status_code=status.HTTP_200_OK)
 def extract_single_table(
     extraction_method: TableExtractionMethod,
+    table_extraction_service: Annotated[TableExtractionService, Depends(get_table_extraction_service)],
     pdfPageNumber: int = Query(..., description="PDF page number"),
     upperLeftX: float = Query(..., description="Upper left X coordinate"),
     upperLeftY: float = Query(..., description="Upper left Y coordinate"),
@@ -71,6 +97,6 @@ def extract_single_table(
         rect_width=rectWidth,
         rect_height=rectHeight,
     )
-    print(extraction_method)
-    print(rectangle)
-    return Response(status_code=status.HTTP_200_OK)
+
+    result = table_extraction_service.extract_table_data(extraction_method=extraction_method, rectangle_data=rectangle)
+    return result

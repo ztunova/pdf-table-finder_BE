@@ -7,7 +7,7 @@ class TableDetectionInterface(ABC):
         pass
 
 
-class TableDataExtractionInterface(ABC):
+class TableExtractionInterface(ABC):
     @abstractmethod
     def extract_tabular_data(self):
         pass

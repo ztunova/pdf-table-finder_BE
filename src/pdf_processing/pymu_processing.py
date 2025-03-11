@@ -1,39 +1,59 @@
 import pymupdf
 from src.custom_types.api_types import SingleTableRequest
-from src.custom_types.interfaces import TableDataExtractionInterface, TableDetectionInterface
+from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.file_handler import FileHandler
 
 
-class PymuProcessing(TableDetectionInterface, TableDataExtractionInterface):
+class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
     def __init__(self):
         super().__init__()
-        self.fileHandler = FileHandler()
+        self.file_handler = FileHandler()
 
+    # TODO: vracia suradnice laveho horneho a praveho dolneho rohu
     def detect_tables(self):
-        pdf_with_dir = self.fileHandler.get_pdf_name_with_directory()
+        pdf_with_dir = self.file_handler.get_pdf_name_with_directory()
         doc = pymupdf.open(pdf_with_dir)
         all_tables_in_doc = {}
         for page in doc:
             tables_on_page = page.find_tables()
             tables_on_page_bboxes = []
             for table in tables_on_page.tables:
+                page.draw_rect(table.bbox, color=(0, 1, 0), width=2)
+                print((table.bbox[0], table.bbox[1]), (table.bbox[0], table.bbox[1]))
+                page.draw_line((table.bbox[0], table.bbox[1]), (table.bbox[2], table.bbox[3]), color=(0, 1, 0), width=2)
                 tables_on_page_bboxes.append(table.bbox)
             all_tables_in_doc[page.number] = tables_on_page_bboxes
 
+        output_path_pdf = self.file_handler.get_pdf_result_output()
+        doc.save(output_path_pdf)
         return all_tables_in_doc
 
     def extract_tabular_data(self, rectangle_data: SingleTableRequest):
-        pdf_with_dir = self.fileHandler.get_pdf_name_with_directory()
+        pdf_with_dir = self.file_handler.get_pdf_name_with_directory()
         doc = pymupdf.open(pdf_with_dir)
         page = doc[rectangle_data.pdf_page_number]
         table_box = (
             rectangle_data.upper_left_x,
             rectangle_data.upper_left_y,
-            rectangle_data.rect_width,
-            rectangle_data.rect_height,
+            rectangle_data.lower_right_x,
+            rectangle_data.lower_right_y,
         )
-        tables = page.find_tables(
+        page.draw_rect(table_box, color=(1, 0, 0), width=2)
+
+        # for testing purposes
+        output_path_pdf = self.file_handler.get_pdf_result_output()
+        doc.save(output_path_pdf)
+
+        found_tables = page.find_tables(
             clip=table_box, horizontal_strategy="text", vertical_strategy="text", min_words_horizontal=3
-        )
-        for table in tables:
-            print(table.to_markdown())
+        ).tables
+
+        if not found_tables or len(found_tables) == 0:
+            # No tables found
+            return []
+
+        rows = []
+        for table in found_tables:
+            rows.extend(table.extract())
+
+        return rows
