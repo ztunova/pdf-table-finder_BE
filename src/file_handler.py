@@ -1,6 +1,8 @@
 import os
 import shutil
 
+import pymupdf
+
 from src.constants import PATH_TO_IMGS, PATH_TO_PDFS
 from src.exceptions.custom_exceptions import NotAPdfFileException
 
@@ -15,28 +17,38 @@ class FileHandler:
 
     def get_directory_content(self, directory_path: str) -> list[str]:
         directory_content: list[str] = os.listdir(directory_path)
-        directory_content.remove('README.md')
+        directory_content.remove("README.md")
         return directory_content
-    
+
     def get_pdf_name_with_directory(self) -> str:
-        pdf_file_name = self.get_directory_content(PATH_TO_PDFS)[0]
+        pdf_file_name: str = self.get_directory_content(PATH_TO_PDFS)[0]
         return os.path.join(PATH_TO_PDFS, pdf_file_name)
 
-    def _clean_up_pdf_storage_(self):
-        pdf_dir_content: list[str] = self.get_directory_content(PATH_TO_PDFS)
-        print(pdf_dir_content)
-        for pdf_name in pdf_dir_content:
-            path = os.path.join(PATH_TO_PDFS, pdf_name)
+    def _clean_up_directory_content_(self, direcotry_path: str) -> None:
+        dir_content: list[str] = self.get_directory_content(direcotry_path)
+        for file_name in dir_content:
+            path = os.path.join(direcotry_path, file_name)
             os.remove(path)
 
+    def __pdf_to_images__(self) -> None:
+        pdf_name_with_dir = self.get_pdf_name_with_directory()
+        doc = pymupdf.open(pdf_name_with_dir)
+        for page in doc:
+            save_img_path = PATH_TO_IMGS + "/page-%i.png" % page.number
+            pix = page.get_pixmap(dpi=900)
+            pix.save(save_img_path)
+
     def upload_pdf_file(self, file):
-        self._clean_up_pdf_storage_()
-        
-        if not file.filename.endswith('.pdf'):
+        self._clean_up_directory_content_(PATH_TO_PDFS)
+        self._clean_up_directory_content_(PATH_TO_IMGS)
+
+        if not file.filename.endswith(".pdf"):
             raise NotAPdfFileException()
-    
+
         file_with_path = os.path.join(PATH_TO_PDFS, file.filename)
-    
+
         # Save the uploaded file
         with open(file_with_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        # self.__pdf_to_images__()
