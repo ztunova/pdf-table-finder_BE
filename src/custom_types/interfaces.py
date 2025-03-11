@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 
-class TableFindingInterface(ABC):
+class TableDetectionInterface(ABC):
     @abstractmethod
-    def get_location_of_tables(self):
+    def detect_tables(self):
         pass
 
 

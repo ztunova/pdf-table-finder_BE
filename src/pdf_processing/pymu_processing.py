@@ -1,15 +1,15 @@
 import pymupdf
 from src.custom_types.api_types import SingleTableRequest
-from src.custom_types.interfaces import TableDataExtractionInterface, TableFindingInterface
+from src.custom_types.interfaces import TableDataExtractionInterface, TableDetectionInterface
 from src.file_handler import FileHandler
 
 
-class PymuProcessing(TableFindingInterface, TableDataExtractionInterface):
+class PymuProcessing(TableDetectionInterface, TableDataExtractionInterface):
     def __init__(self):
         super().__init__()
         self.fileHandler = FileHandler()
 
-    def get_location_of_tables(self):
+    def detect_tables(self):
         pdf_with_dir = self.fileHandler.get_pdf_name_with_directory()
         doc = pymupdf.open(pdf_with_dir)
         all_tables_in_doc = {}
