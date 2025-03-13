@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw
 import pymupdf
 from ultralyticsplus import YOLO, render_result
 from src.constants import PATH_TO_IMGS, PATH_TO_PDFS, PATH_TO_RESULTS
+from src.custom_types.api_types import Point
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.file_handler import FileHandler
 
@@ -14,7 +15,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         super().__init__()
         self.fileHandler = FileHandler()
 
-    def __yolo_detect__(self, image_name: str):
+    def __yolo_detect(self, image_name: str):
         # load model
         model = YOLO("foduucom/table-detection-and-extraction")
 
@@ -39,12 +40,17 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         ## draw yolo results
         r = ImageDraw.Draw(render)
         table_cout = 0
+        tables_on_page = []
         for box in results[0].boxes:
             print(box)
             lb = box.data[0].data
             x1, y1, x2, y2 = (int(lb[0].item()), int(lb[1].item()), int(lb[2].item()), int(lb[3].item()))
-            r.rectangle(
-                (int(lb[0].item()), int(lb[1].item()), int(lb[2].item()), int(lb[3].item())), outline=(255, 255, 0)
+            print(x1, y1, x2, y2)
+            table_coords = Point(
+                upper_left_x=x1,
+                upper_left_y=y1,
+                lower_right_x=x2,
+                lower_right_y=y2,
             )
 
             # cropping
@@ -52,14 +58,20 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
             cropped_image = Image.fromarray(cropped_image)
             cropped_image.save(PATH_TO_RESULTS + "/" + image_name_without_suffix + "_table-" + str(table_cout) + ".png")
             table_cout += 1
+            tables_on_page.append(table_coords)
 
-        return table_cout
+        return tables_on_page
 
     def detect_tables(self):
-        return "yolo detect tables"
         all_images = self.fileHandler.get_directory_content(PATH_TO_IMGS)
-        for img in all_images:
-            self.__yolo_detect__(img)
+        all_tables_in_doc = {}
+        for img_name_with_path in all_images:
+            page_number = int(img_name_with_path[img_name_with_path.find('-')+1 : img_name_with_path.find('.')])
+            print('page number: ', page_number)
+            tables_on_page = self.__yolo_detect(img_name_with_path)
+            all_tables_in_doc[page_number] = tables_on_page
+
+        return all_tables_in_doc
 
     def extract_tabular_data(self):
         pass
