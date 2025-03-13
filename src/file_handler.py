@@ -15,6 +15,9 @@ class FileHandler:
         if not os.path.exists(PATH_TO_IMGS):
             os.makedirs(PATH_TO_IMGS)
 
+        if not os.path.exists(PATH_TO_RESULTS):
+            os.makedirs(PATH_TO_RESULTS)
+
     def get_directory_content(self, directory_path: str) -> list[str]:
         directory_content: list[str] = os.listdir(directory_path)
         directory_content.remove("README.md")
@@ -46,6 +49,7 @@ class FileHandler:
     def upload_pdf_file(self, file):
         self.__clean_up_directory_content(PATH_TO_PDFS)
         self.__clean_up_directory_content(PATH_TO_IMGS)
+        self.__clean_up_directory_content(PATH_TO_RESULTS)
 
         if not file.filename.endswith(".pdf"):
             raise NotAPdfFileException()

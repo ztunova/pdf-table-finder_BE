@@ -3,3 +3,5 @@ __pycache__
 data/imgs/*.png
 data/imgs/*.jpg
 data/pdf/*.pdf
+data/results/*.pdf
+data/results/*.png
