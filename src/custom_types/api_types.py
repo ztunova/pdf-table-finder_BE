@@ -3,8 +3,15 @@ from typing import Dict, List, Tuple
 from pydantic import BaseModel
 
 
+class Point(BaseModel):
+    upper_left_x: float
+    upper_left_y: float
+    lower_right_x: float
+    lower_right_y: float
+
+
 class TableDetectionResponse(BaseModel):
-    tables: Dict[int, List[Tuple[float, float, float, float]]]
+    tables: Dict[int, List[Point]]
 
 
 class TableExtractionResponse(BaseModel):

@@ -1,5 +1,5 @@
 import pymupdf
-from src.custom_types.api_types import SingleTableRequest
+from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.file_handler import FileHandler
 
@@ -21,7 +21,13 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
                 page.draw_rect(table.bbox, color=(0, 1, 0), width=2)
                 print((table.bbox[0], table.bbox[1]), (table.bbox[0], table.bbox[1]))
                 page.draw_line((table.bbox[0], table.bbox[1]), (table.bbox[2], table.bbox[3]), color=(0, 1, 0), width=2)
-                tables_on_page_bboxes.append(table.bbox)
+                table_coords = Point(
+                    upper_left_x=table.bbox[0],
+                    upper_left_y=table.bbox[1],
+                    lower_right_x=table.bbox[2],
+                    lower_right_y=table.bbox[3],
+                )
+                tables_on_page_bboxes.append(table_coords)
             all_tables_in_doc[page.number] = tables_on_page_bboxes
 
         output_path_pdf = self.file_handler.get_pdf_result_output()
