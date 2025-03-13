@@ -34,6 +34,7 @@ class FileHandler:
             path = os.path.join(direcotry_path, file_name)
             os.remove(path)
 
+    # strany cislovane od 0
     def __pdf_to_images(self) -> None:
         pdf_name_with_dir = self.get_pdf_name_with_directory()
         doc = pymupdf.open(pdf_name_with_dir)
@@ -55,4 +56,4 @@ class FileHandler:
         with open(file_with_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # self.__pdf_to_images__()
+        self.__pdf_to_images()
