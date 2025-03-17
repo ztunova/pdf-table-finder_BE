@@ -22,10 +22,10 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
                 print((table.bbox[0], table.bbox[1]), (table.bbox[0], table.bbox[1]))
                 page.draw_line((table.bbox[0], table.bbox[1]), (table.bbox[2], table.bbox[3]), color=(0, 1, 0), width=2)
                 table_coords = Point(
-                    upper_left_x=table.bbox[0],
-                    upper_left_y=table.bbox[1],
-                    lower_right_x=table.bbox[2],
-                    lower_right_y=table.bbox[3],
+                    upperLeftX=table.bbox[0],
+                    upperLeftY=table.bbox[1],
+                    lowerRightX=table.bbox[2],
+                    lowerRightY=table.bbox[3],
                 )
                 tables_on_page_bboxes.append(table_coords)
             all_tables_in_doc[page.number] = tables_on_page_bboxes

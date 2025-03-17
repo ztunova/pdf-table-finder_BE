@@ -4,10 +4,10 @@ from pydantic import BaseModel
 
 
 class Point(BaseModel):
-    upper_left_x: float
-    upper_left_y: float
-    lower_right_x: float
-    lower_right_y: float
+    upperLeftX: float
+    upperLeftY: float
+    lowerRightX: float
+    lowerRightY: float
 
 
 class TableDetectionResponse(BaseModel):
