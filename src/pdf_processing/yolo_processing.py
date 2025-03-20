@@ -11,6 +11,7 @@ from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.custom_types.table_types import TableRow, TableWord
 from src.file_handler import FileHandler
+from src.service.service_helper import ServiceHelper
 
 
 class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
@@ -19,6 +20,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         super().__init__()
         self.fileHandler = FileHandler()
         self.reader = easyocr.Reader(['en'])
+        self.helper = ServiceHelper()
 
     def __yolo_detect(self, image_name: str):
         # load model
@@ -66,16 +68,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
             tables_on_page.append(table_coords)
 
         return tables_on_page
-    
-    def __crop_image(self, request: SingleTableRequest):
-        print('cropping img')
-        image_path = PATH_TO_IMGS + "/page-%i.png" % request.pdf_page_number
-        img = np.array(Image.open(image_path))
-        cropped_image = img[int(request.upper_left_y):int(request.lower_right_y), int(request.upper_left_x):int(request.lower_right_x)]
-
-        return cropped_image
-        # cropped_image = Image.fromarray(cropped_image)
-        # cropped_image.save(PATH_TO_RESULTS + "/" + image_name_without_suffix + "_table-" + str(table_cout) + ".png")
 
     def __find_text(self, img):
         ## mser
@@ -338,7 +330,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
 
     def extract_tabular_data(self, rectangle_data: SingleTableRequest):
         # get only table part from page image
-        cropped_table_image = self.__crop_image(request=rectangle_data)
+        cropped_table_image = self.helper.crop_image(request=rectangle_data)
         cv2.imwrite(PATH_TO_RESULTS + '/test.png', cropped_table_image)
         result = self.__split_words_to_rows_and_columns(cropped_table_image)
         # print("yolo result: \n", result)
