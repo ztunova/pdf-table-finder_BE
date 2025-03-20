@@ -24,6 +24,6 @@ class TableExtractionService:
 
         strategy = self.__extraction_strategies[extraction_method]
         extracted_table_data = strategy.extract_tabular_data(rectangle_data)
-        result = TableExtractionResponse(table_data=extracted_table_data)
+        result = TableExtractionResponse(tableData=extracted_table_data)
         print(result)
         return result
