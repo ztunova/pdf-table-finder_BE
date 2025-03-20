@@ -85,8 +85,8 @@ def extract_single_table(
     upperLeftY: float = Query(..., description="Upper left Y coordinate"),
     lowerRightX: float = Query(..., description="Lower right X coordinate"),
     lowerRightY: float = Query(..., description="Lower right Y coordinate"),
-    rectWidth: float = Query(..., description="Rectangle width"),
-    rectHeight: float = Query(..., description="Rectangle height"),
+    # rectWidth: float = Query(..., description="Rectangle width"),
+    # rectHeight: float = Query(..., description="Rectangle height"),
 ):
     rectangle = SingleTableRequest(
         pdf_page_number=pdfPageNumber,
@@ -94,8 +94,8 @@ def extract_single_table(
         upper_left_y=upperLeftY,
         lower_right_x=lowerRightX,
         lower_right_y=lowerRightY,
-        rect_width=rectWidth,
-        rect_height=rectHeight,
+        # rect_width=rectWidth,
+        # rect_height=rectHeight,
     )
 
     result = table_extraction_service.extract_table_data(extraction_method=extraction_method, rectangle_data=rectangle)

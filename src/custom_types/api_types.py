@@ -15,7 +15,7 @@ class TableDetectionResponse(BaseModel):
 
 
 class TableExtractionResponse(BaseModel):
-    table_data: List[List[str]]
+    tableData: List[List[str]]
 
 
 class SingleTableRequest(BaseModel):
@@ -24,8 +24,8 @@ class SingleTableRequest(BaseModel):
     upper_left_y: float
     lower_right_x: float
     lower_right_y: float
-    rect_width: float
-    rect_height: float
+    # rect_width: float
+    # rect_height: float
 
 
 class TableDetectionMethod(str, Enum):
