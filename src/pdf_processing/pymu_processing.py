@@ -2,12 +2,14 @@ import pymupdf
 from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.file_handler import FileHandler
+from src.service.service_helper import ServiceHelper
 
 
 class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
     def __init__(self):
         super().__init__()
         self.file_handler = FileHandler()
+        self.helper = ServiceHelper()
 
     # TODO: vracia suradnice laveho horneho a praveho dolneho rohu
     def detect_tables(self):
@@ -15,6 +17,9 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
         doc = pymupdf.open(pdf_with_dir)
         all_tables_in_doc = {}
         for page in doc:
+            page_width = page.rect.width
+            page_height = page.rect.height
+
             tables_on_page = page.find_tables()
             tables_on_page_bboxes = []
             for table in tables_on_page.tables:
@@ -27,7 +32,10 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
                     lowerRightX=table.bbox[2],
                     lowerRightY=table.bbox[3],
                 )
-                tables_on_page_bboxes.append(table_coords)
+                
+                percentage_coords = self.helper.coords_to_percentage(table_coords, page_width, page_height)
+                print("`%` coords", percentage_coords)
+                tables_on_page_bboxes.append(percentage_coords)
             all_tables_in_doc[page.number] = tables_on_page_bboxes
 
         output_path_pdf = self.file_handler.get_pdf_result_output()
