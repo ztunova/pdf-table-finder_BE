@@ -37,6 +37,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         image_name_without_suffix = image_name.removesuffix(".png")
 
         img = np.array(Image.open(image_path))
+        img_height, img_width, img_channels = img.shape
 
         # perform inference
         results = model.predict(image_path)
@@ -60,12 +61,14 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                 lowerRightY=y2,
             )
 
+            percentage_coords = self.helper.coords_to_percentage(table_coords, img_width, img_height)
+
             # cropping
             cropped_image = img[y1:y2, x1:x2]
             cropped_image = Image.fromarray(cropped_image)
             cropped_image.save(PATH_TO_RESULTS + "/" + image_name_without_suffix + "_table-" + str(table_cout) + ".png")
             table_cout += 1
-            tables_on_page.append(table_coords)
+            tables_on_page.append(percentage_coords)
 
         return tables_on_page
 
