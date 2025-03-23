@@ -33,7 +33,7 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
                     lowerRightY=table.bbox[3],
                 )
                 
-                percentage_coords = self.helper.coords_to_percentage(table_coords, page_width, page_height)
+                percentage_coords = self.helper.absolute_coords_to_percentage(table_coords, page_width, page_height)
                 print("`%` coords", percentage_coords)
                 tables_on_page_bboxes.append(percentage_coords)
             all_tables_in_doc[page.number] = tables_on_page_bboxes
@@ -46,11 +46,15 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
         pdf_with_dir = self.file_handler.get_pdf_name_with_directory()
         doc = pymupdf.open(pdf_with_dir)
         page = doc[rectangle_data.pdf_page_number]
+        page_width = page.rect.width
+        page_height = page.rect.height
+
+        absolute_coords = self.helper.percentage_coords_to_absolute(rectangle_data, page_width, page_height)
         table_box = (
-            rectangle_data.upper_left_x,
-            rectangle_data.upper_left_y,
-            rectangle_data.lower_right_x,
-            rectangle_data.lower_right_y,
+            absolute_coords.upper_left_x,
+            absolute_coords.upper_left_y,
+            absolute_coords.lower_right_x,
+            absolute_coords.lower_right_y,
         )
         page.draw_rect(table_box, color=(1, 0, 0), width=2)
 

@@ -61,7 +61,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                 lowerRightY=y2,
             )
 
-            percentage_coords = self.helper.coords_to_percentage(table_coords, img_width, img_height)
+            percentage_coords = self.helper.absolute_coords_to_percentage(table_coords, img_width, img_height)
 
             # cropping
             cropped_image = img[y1:y2, x1:x2]
