@@ -56,9 +56,6 @@ def get_table_extraction_service(
         pymu_extraction=pymu_extraction, yolo_extraction=yolo_extraction, gpt_extraction=openai_extraction
     )
 
-def get_export_service() -> ExportService:
-    return ExportService()
-
 
 # mozno export -> dostane data a format, vrati subors
 # upload pdf -> dostane pdf v requeste, vrati len status code
@@ -106,19 +103,3 @@ def extract_single_table(
 
     result = table_extraction_service.extract_table_data(extraction_method=extraction_method, rectangle_data=rectangle)
     return result
-
-
-@pdf_router.post("/export/{export_format}", status_code=status.HTTP_200_OK)
-def export_to_file(
-    export_format: ExportFormat,
-    data: ExportTablesRequest,
-    export_service: ExportService = Depends(get_export_service),
-):
-    print(export_format)
-    print(data)
-    output = export_service.export_data_to_file(export_format=export_format, data=data)
-    return StreamingResponse(
-        output,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=exported_tables.xlsx"}
-    )

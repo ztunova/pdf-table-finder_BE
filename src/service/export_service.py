@@ -1,32 +1,39 @@
 import io
 from typing import Dict
+import zipfile
 import pandas as pd
 from src.constants import PATH_TO_RESULTS
 from src.custom_types.api_types import ExportFormat, ExportTablesRequest, TableData
 
 
 class ExportService:
-    def __export_to_excel(self, data: Dict[str, TableData]):
-        filename = PATH_TO_RESULTS + "/test.xlsx"
+    def export_to_excel(self, data: ExportTablesRequest):
+        data = data.data
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
             for key, value in data.items():
-                sheet_name = value.title
-                sanitized_sheet_name = sheet_name.translate({ord(c): " " for c in "[]:*?/\\"})
-                print(sheet_name)
+                sheet_name = value.title.translate({ord(c): " " for c in "[]:*?/\\"})
                 table_data = pd.DataFrame(value.extractedData)
-                table_data.to_excel(writer, sheet_name=sanitized_sheet_name, index=False, header=False)
+                table_data.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
 
         output.seek(0)
         return output
 
-    def __export_to_csv(self, data: Dict[str, TableData]):
-        pass
-
-    def export_data_to_file(self, export_format: ExportFormat, data: ExportTablesRequest):
+    def export_to_csv(self, data: ExportTablesRequest):
         data = data.data
-        if (export_format == ExportFormat.EXCEL):
-            return self.__export_to_excel(data)
-        elif (export_format == ExportFormat.CSV):
-            self.__export_to_csv(data)
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED, False) as zip_file:
+            for key, value in data.items():
+                csv_buffer = io.BytesIO()
 
+                table_data = pd.DataFrame(value.extractedData)
+                table_data.to_csv(csv_buffer, index=False, header=False)
+                
+                csv_buffer.seek(0)
+                
+                sanitized_title = value.title.translate({ord(c): "_" for c in "[]:*?/\\"})
+                file_name = f"{sanitized_title}.csv"
+                zip_file.writestr(file_name, csv_buffer.getvalue())
+        
+        zip_buffer.seek(0)
+        return zip_buffer

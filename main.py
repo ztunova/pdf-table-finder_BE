@@ -2,6 +2,7 @@ from fastapi import (
     FastAPI,
 )
 from fastapi.responses import RedirectResponse
+from src.exports_api import exports_router
 from src.pdf_api import pdf_router
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -31,3 +32,4 @@ app.add_middleware(
 
 
 app.include_router(pdf_router)
+app.include_router(exports_router)
