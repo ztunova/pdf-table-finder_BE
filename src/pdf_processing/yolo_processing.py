@@ -10,6 +10,7 @@ from src.constants import PATH_TO_IMGS, PATH_TO_PDFS, PATH_TO_RESULTS
 from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.custom_types.table_types import TableRow, TableWord
+from src.exceptions.custom_exceptions import NoTableException
 from src.file_handler import FileHandler
 from src.service.service_helper import ServiceHelper
 
@@ -113,6 +114,9 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
             }
             data.append(new_bbox)
 
+        if not data:
+            raise NoTableException()
+        
         df = pandas.DataFrame(data)
         return df
     

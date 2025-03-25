@@ -1,6 +1,6 @@
 from src.custom_types.api_types import SingleTableRequest, TableExtractionMethod, TableExtractionResponse
 from src.custom_types.interfaces import TableExtractionInterface
-from src.exceptions.custom_exceptions import InvalidTableMethod
+from src.exceptions.custom_exceptions import InvalidTableMethodException, NoTableException
 
 
 class TableExtractionService:
@@ -20,10 +20,13 @@ class TableExtractionService:
         print(extraction_method)
         print(rectangle_data)
         if extraction_method not in self.__extraction_strategies:
-            raise InvalidTableMethod(extraction_method)
+            raise InvalidTableMethodException(extraction_method)
 
         strategy = self.__extraction_strategies[extraction_method]
         extracted_table_data = strategy.extract_tabular_data(rectangle_data)
+        if not extracted_table_data:
+            raise NoTableException(message="No table found withing given coordinates")
+
         result = TableExtractionResponse(tableData=extracted_table_data)
         print(result)
         return result

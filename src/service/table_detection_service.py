@@ -1,6 +1,6 @@
 from src.custom_types.api_types import TableDetectionMethod, TableDetectionResponse
 from src.custom_types.interfaces import TableDetectionInterface
-from src.exceptions.custom_exceptions import InvalidTableMethod
+from src.exceptions.custom_exceptions import InvalidTableMethodException, NoTableException
 
 
 class TableDetectionService:
@@ -12,10 +12,15 @@ class TableDetectionService:
 
     def detect_tables(self, detection_method: TableDetectionMethod):
         if detection_method not in self.__detection_strategies:
-            raise InvalidTableMethod(detection_method)
+            raise InvalidTableMethodException(detection_method)
 
         strategy = self.__detection_strategies[detection_method]
         detected_tables = strategy.detect_tables()
         result = TableDetectionResponse(tables=detected_tables)
-        print(result)
-        return result
+
+        for key, value in result.tables.items():
+            if value:
+                print("DETECT: ", result)
+                return result
+
+        raise NoTableException(message="No tables found in file")
