@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel
 
 
@@ -27,6 +27,15 @@ class SingleTableRequest(BaseModel):
     # rect_width: float
     # rect_height: float
 
+class TableData(BaseModel):
+    id: str
+    title: str
+    pdfPageNumber: int
+    coordinates: Point
+    extractedData: List[List[Optional[str]]]
+
+class ExportTablesRequest(BaseModel):
+    data: Dict[str, TableData]
 
 class TableDetectionMethod(str, Enum):
     PYMU = "pymu"
@@ -37,3 +46,7 @@ class TableExtractionMethod(str, Enum):
     PYMU = "pymu"
     YOLO = "yolo"
     CHATGPT = "chatgpt"
+
+class ExportFormat(str, Enum):
+    EXCEL = "excel"
+    CSV = "csv"

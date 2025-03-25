@@ -1,8 +1,10 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from src.custom_types.api_types import (
+    ExportFormat,
+    ExportTablesRequest,
     SingleTableRequest,
     TableDetectionMethod,
     TableDetectionResponse,
@@ -14,6 +16,7 @@ from src.file_handler import FileHandler
 from src.pdf_processing.openai_processing import OpenAiProcessing
 from src.pdf_processing.pymu_processing import PymuProcessing
 from src.pdf_processing.yolo_processing import YoloProcessing
+from src.service.export_service import ExportService
 from src.service.table_detection_service import TableDetectionService
 from src.service.table_extraction_service import TableExtractionService
 
@@ -52,6 +55,9 @@ def get_table_extraction_service(
     return TableExtractionService(
         pymu_extraction=pymu_extraction, yolo_extraction=yolo_extraction, gpt_extraction=openai_extraction
     )
+
+def get_export_service() -> ExportService:
+    return ExportService()
 
 
 # mozno export -> dostane data a format, vrati subors
@@ -100,3 +106,19 @@ def extract_single_table(
 
     result = table_extraction_service.extract_table_data(extraction_method=extraction_method, rectangle_data=rectangle)
     return result
+
+
+@pdf_router.post("/export/{export_format}", status_code=status.HTTP_200_OK)
+def export_to_file(
+    export_format: ExportFormat,
+    data: ExportTablesRequest,
+    export_service: ExportService = Depends(get_export_service),
+):
+    print(export_format)
+    print(data)
+    output = export_service.export_data_to_file(export_format=export_format, data=data)
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=exported_tables.xlsx"}
+    )
