@@ -1,0 +1,23 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.1
+torchaudio==2.4.1
+torchvision==0.19.1
+tqdm
+ultralytics==8.0.43
+ultralyticsplus==0.0.28
+urllib3
+XlsxWriter
+easyocr
+fastapi
+numpy
+openai
+opencv-python
+opencv-python-headless
+pandas
+pillow
+PyMuPDF
+python-dotenv
+PyYAML
+scikit-image
+scipy
+seaborn
