@@ -24,8 +24,6 @@ class SingleTableRequest(BaseModel):
     upper_left_y: float
     lower_right_x: float
     lower_right_y: float
-    # rect_width: float
-    # rect_height: float
 
 class TableData(BaseModel):
     id: str

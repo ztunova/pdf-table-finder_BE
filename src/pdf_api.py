@@ -1,10 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
-from fastapi.responses import JSONResponse, StreamingResponse
 
 from src.custom_types.api_types import (
-    ExportFormat,
-    ExportTablesRequest,
     SingleTableRequest,
     TableDetectionMethod,
     TableDetectionResponse,
@@ -16,7 +13,6 @@ from src.file_handler import FileHandler
 from src.pdf_processing.openai_processing import OpenAiProcessing
 from src.pdf_processing.pymu_processing import PymuProcessing
 from src.pdf_processing.yolo_processing import YoloProcessing
-from src.service.export_service import ExportService
 from src.service.table_detection_service import TableDetectionService
 from src.service.table_extraction_service import TableExtractionService
 
@@ -57,7 +53,6 @@ def get_table_extraction_service(
     )
 
 
-# mozno export -> dostane data a format, vrati subors
 # upload pdf -> dostane pdf v requeste, vrati len status code
 @pdf_router.post("/")
 def upload_pdf_file(
@@ -88,8 +83,6 @@ def extract_single_table(
     upperLeftY: float = Query(..., description="Upper left Y coordinate"),
     lowerRightX: float = Query(..., description="Lower right X coordinate"),
     lowerRightY: float = Query(..., description="Lower right Y coordinate"),
-    # rectWidth: float = Query(..., description="Rectangle width"),
-    # rectHeight: float = Query(..., description="Rectangle height"),
 ):
     rectangle = SingleTableRequest(
         pdf_page_number=pdfPageNumber,
@@ -97,8 +90,6 @@ def extract_single_table(
         upper_left_y=upperLeftY,
         lower_right_x=lowerRightX,
         lower_right_y=lowerRightY,
-        # rect_width=rectWidth,
-        # rect_height=rectHeight,
     )
 
     result = table_extraction_service.extract_table_data(extraction_method=extraction_method, rectangle_data=rectangle)

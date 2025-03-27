@@ -21,3 +21,5 @@ PyYAML
 scikit-image
 scipy
 seaborn
+uvicorn
+python-multipart

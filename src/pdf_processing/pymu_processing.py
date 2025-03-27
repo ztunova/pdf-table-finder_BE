@@ -11,7 +11,7 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
         self.file_handler = FileHandler()
         self.helper = ServiceHelper()
 
-    # TODO: vracia suradnice laveho horneho a praveho dolneho rohu
+    # returns coordinates of top lef and bottom right corner
     def detect_tables(self):
         pdf_with_dir = self.file_handler.get_pdf_name_with_directory()
         doc = pymupdf.open(pdf_with_dir)
@@ -24,7 +24,6 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
             tables_on_page_bboxes = []
             for table in tables_on_page.tables:
                 page.draw_rect(table.bbox, color=(0, 1, 0), width=2)
-                print((table.bbox[0], table.bbox[1]), (table.bbox[0], table.bbox[1]))
                 page.draw_line((table.bbox[0], table.bbox[1]), (table.bbox[2], table.bbox[3]), color=(0, 1, 0), width=2)
                 table_coords = Point(
                     upperLeftX=table.bbox[0],
@@ -34,7 +33,6 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
                 )
                 
                 percentage_coords = self.helper.absolute_coords_to_percentage(table_coords, page_width, page_height)
-                print("`%` coords", percentage_coords)
                 tables_on_page_bboxes.append(percentage_coords)
             all_tables_in_doc[page.number] = tables_on_page_bboxes
 

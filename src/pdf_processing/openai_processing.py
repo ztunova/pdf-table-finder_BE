@@ -92,5 +92,4 @@ class OpenAiProcessing(TableExtractionInterface):
         base64_image = self.__encode_image(table_image)
         gpt_answer = self.__get_chatgpt_answer(base64_image)
         result = self.__parse_markdown_table(gpt_answer)
-        print("chatgpt\n", result)
         return result

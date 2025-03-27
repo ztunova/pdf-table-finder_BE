@@ -2,8 +2,7 @@ import io
 from typing import Dict
 import zipfile
 import pandas as pd
-from src.constants import PATH_TO_RESULTS
-from src.custom_types.api_types import ExportFormat, ExportTablesRequest, TableData
+from src.custom_types.api_types import ExportTablesRequest
 
 
 class ExportService:

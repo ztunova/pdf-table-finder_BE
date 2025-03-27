@@ -20,7 +20,6 @@ class TableDetectionService:
 
         for key, value in result.tables.items():
             if value:
-                print("DETECT: ", result)
                 return result
 
         raise NoTableException(message="No tables found in file")

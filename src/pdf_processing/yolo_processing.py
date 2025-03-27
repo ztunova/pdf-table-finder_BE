@@ -2,11 +2,10 @@ import os
 import cv2
 import easyocr
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 import pandas
-import pymupdf
 from ultralyticsplus import YOLO, render_result
-from src.constants import PATH_TO_IMGS, PATH_TO_PDFS, PATH_TO_RESULTS
+from src.constants import PATH_TO_IMGS
 from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.custom_types.table_types import TableRow, TableWord
@@ -34,7 +33,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         model.overrides["max_det"] = 1000  # maximum number of detections per image
 
         image_path = os.path.join(PATH_TO_IMGS, image_name)
-        print(image_path)
         image_name_without_suffix = image_name.removesuffix(".png")
 
         img = np.array(Image.open(image_path))
@@ -47,14 +45,12 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         render = render_result(model=model, image=image_path, result=results[0])
 
         ## draw yolo results
-        r = ImageDraw.Draw(render)
-        table_cout = 0
+        # r = ImageDraw.Draw(render)
+        # table_cout = 0
         tables_on_page = []
         for box in results[0].boxes:
-            print(box)
             lb = box.data[0].data
             x1, y1, x2, y2 = (int(lb[0].item()), int(lb[1].item()), int(lb[2].item()), int(lb[3].item()))
-            print(x1, y1, x2, y2)
             table_coords = Point(
                 upperLeftX=x1,
                 upperLeftY=y1,
@@ -65,10 +61,10 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
             percentage_coords = self.helper.absolute_coords_to_percentage(table_coords, img_width, img_height)
 
             # cropping
-            cropped_image = img[y1:y2, x1:x2]
-            cropped_image = Image.fromarray(cropped_image)
-            cropped_image.save(PATH_TO_RESULTS + "/" + image_name_without_suffix + "_table-" + str(table_cout) + ".png")
-            table_cout += 1
+            # cropped_image = img[y1:y2, x1:x2]
+            # cropped_image = Image.fromarray(cropped_image)
+            # cropped_image.save(PATH_TO_RESULTS + "/" + image_name_without_suffix + "_table-" + str(table_cout) + ".png")
+            # table_cout += 1
             tables_on_page.append(percentage_coords)
 
         return tables_on_page
@@ -88,7 +84,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         data = []
         mask = np.zeros((img.shape[0], img.shape[1], 1), dtype=np.uint8)
 
-        # fill in bboxes of found text => merge letters together to bigger regions => get white rectangles where text is on black background img
+        # fill in bboxes of found text => merge letters together to bigger regions => get white rectangles (text location) on black background img
         for p in regions:
             x, y, w, h = cv2.boundingRect(p.reshape(-1, 1, 2))
             cv2.rectangle(mask, (x, y), (x + w, y + h), (255, 255, 255), -2)
@@ -212,7 +208,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         return text
     
 
-    ## for easy ocr
     def __get_ocr_text(self, ocr_results):
         img_text = ""
         for (bbox, text, prob) in ocr_results:
@@ -315,12 +310,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
 
             final_table.append(final_row)
 
-    #     # export do excelu
-    #     # table_as_df = pandas.DataFrame(final_table)
-    #     # table_as_df = table_as_df.replace(r'^\s*$', np.nan, regex=True)
-    #     # table_as_df.dropna(how='all', axis=1, inplace=True)
-    #     # table_as_df.to_excel(output_file_dir, index=False, header=False)
-
         return final_table
 
 
@@ -329,7 +318,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         all_tables_in_doc = {}
         for img_name_with_path in all_images:
             page_number = int(img_name_with_path[img_name_with_path.find('-')+1 : img_name_with_path.find('.')])
-            print('page number: ', page_number)
             tables_on_page = self.__yolo_detect(img_name_with_path)
             all_tables_in_doc[page_number] = tables_on_page
 
@@ -338,7 +326,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
     def extract_tabular_data(self, rectangle_data: SingleTableRequest):
         # get only table part from page image
         cropped_table_image = self.helper.crop_image(request=rectangle_data)
-        cv2.imwrite(PATH_TO_RESULTS + '/test.png', cropped_table_image)
+        # cv2.imwrite(PATH_TO_RESULTS + '/test.png', cropped_table_image)
         result = self.__split_words_to_rows_and_columns(cropped_table_image)
-        # print("yolo result: \n", result)
         return result

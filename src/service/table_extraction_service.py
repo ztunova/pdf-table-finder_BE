@@ -19,8 +19,6 @@ class TableExtractionService:
         }
 
     def extract_table_data(self, extraction_method: TableExtractionMethod, rectangle_data: SingleTableRequest):
-        print(extraction_method)
-        print(rectangle_data)
         if extraction_method not in self.__extraction_strategies:
             raise InvalidTableMethodException(extraction_method)
 
