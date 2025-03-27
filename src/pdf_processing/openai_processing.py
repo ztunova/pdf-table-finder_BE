@@ -18,19 +18,19 @@ class OpenAiProcessing(TableExtractionInterface):
     def __encode_image(self, table_image):
         # Convert NumPy array to PIL Image
         pil_image = Image.fromarray(table_image)
-        
+
         # Create a bytes buffer
         buffer = io.BytesIO()
-        
+
         # Save the image to the buffer (in PNG format)
         pil_image.save(buffer, format="PNG")
-        
+
         # Get the bytes from the buffer and encode to base64
         img_bytes = buffer.getvalue()
         base64_encoded = base64.b64encode(img_bytes).decode("utf-8")
-        
+
         return base64_encoded
-        
+
     def __get_chatgpt_answer(self, base64_table_image) -> str:
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
@@ -55,16 +55,16 @@ class OpenAiProcessing(TableExtractionInterface):
         return answer
 
     def __parse_markdown_table(self, gpt_answer: str):
-        replace_new_line = gpt_answer.replace('\\n', '\n')
-        first_table_char_idx = replace_new_line.find('|')
-        last_table_char_idx = replace_new_line.rfind('|')
+        replace_new_line = gpt_answer.replace("\\n", "\n")
+        first_table_char_idx = replace_new_line.find("|")
+        last_table_char_idx = replace_new_line.rfind("|")
 
         if first_table_char_idx == -1 or last_table_char_idx == -1 or first_table_char_idx == last_table_char_idx:
             print("error")
 
-        md_table = replace_new_line[first_table_char_idx:last_table_char_idx+1]   
-        lines = md_table.split('\n')
-        header = lines[0].strip('|').split('|')
+        md_table = replace_new_line[first_table_char_idx : last_table_char_idx + 1]
+        lines = md_table.split("\n")
+        header = lines[0].strip("|").split("|")
 
         table_body = []
         for line in lines[2:]:
@@ -79,12 +79,7 @@ class OpenAiProcessing(TableExtractionInterface):
         # remove trailing whitespaces from words
         table_body.insert(0, header)
         for i in range(len(table_body)):
-            table_body[i] = list(
-                map(
-                    lambda x: x.strip(),
-                    table_body[i]
-                )
-            )
+            table_body[i] = list(map(lambda x: x.strip(), table_body[i]))
         return table_body
 
     def extract_tabular_data(self, rectangle_data: SingleTableRequest):

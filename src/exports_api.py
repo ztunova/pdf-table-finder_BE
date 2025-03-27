@@ -8,6 +8,7 @@ from src.service.export_service import ExportService
 tags = ["Exports"]
 exports_router = APIRouter(prefix="/exports", tags=tags)
 
+
 def get_export_service() -> ExportService:
     return ExportService()
 
@@ -21,7 +22,7 @@ def export_to_file(
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=exported_tables.xlsx"}
+        headers={"Content-Disposition": "attachment; filename=exported_tables.xlsx"},
     )
 
 
@@ -34,5 +35,5 @@ def export_to_file(
     return StreamingResponse(
         output,
         media_type="application/zip",
-        headers={"Content-Disposition": "attachment; filename=exported_tables.zip"}
+        headers={"Content-Disposition": "attachment; filename=exported_tables.zip"},
     )

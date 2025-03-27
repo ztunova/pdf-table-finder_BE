@@ -19,7 +19,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
     def __init__(self):
         super().__init__()
         self.fileHandler = FileHandler()
-        self.reader = easyocr.Reader(['en'])
+        self.reader = easyocr.Reader(["en"])
         self.helper = ServiceHelper()
 
     def __yolo_detect(self, image_name: str):
@@ -112,10 +112,10 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
 
         if not data:
             raise NoTableException()
-        
+
         df = pandas.DataFrame(data)
         return df
-    
+
     def __find_row_above(self, all_table_rows: list[TableRow], word: TableWord):
         word_y_center = word.get_y_center()
         if word_y_center <= all_table_rows[0].words[0].bbox_y:
@@ -127,15 +127,14 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         if word_y_center >= (last_row_first_word.bbox_y + last_row_first_word.bbox_height):
             return all_table_rows[-1]
 
-        for row_idx in range(len(all_table_rows)-1):
+        for row_idx in range(len(all_table_rows) - 1):
             row_above = all_table_rows[row_idx]
             row_above_bottom_border = row_above.words[0].bbox_y + row_above.words[0].bbox_height
-            row_below = all_table_rows[row_idx+1]
+            row_below = all_table_rows[row_idx + 1]
             row_below_upper_border = row_below.words[0].bbox_y
 
             if row_above_bottom_border <= word_y_center <= row_below_upper_border:
                 return row_above
-            
 
     def __find_gaps(self, all_table_rows: list[TableRow], img_width):
         all_gaps = []
@@ -159,9 +158,9 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                     row.line_broken_gaps.append(row_gap)
                     row_gap = []
 
-            for word_idx in range(len(row.words)-1):
+            for word_idx in range(len(row.words) - 1):
                 current_word = row.words[word_idx]
-                next_word = row.words[word_idx+1]
+                next_word = row.words[word_idx + 1]
                 current_word_x_end = current_word.get_x_end()
                 next_word_x_start = next_word.bbox_x
 
@@ -178,7 +177,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
             row.gaps = row_gap
 
         return all_gaps
-    
 
     def __extract_broken_rows(self, all_table_rows: list[TableRow], img_width: int):
         extracted_rows = []
@@ -199,26 +197,23 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                     extracted_rows.append(extracted_row)
 
         return extracted_rows
-    
 
     def __get_cell_text(self, img_to_crop, y_min, y_max, x_min, x_max):
         img_cell_crop = img_to_crop[y_min:y_max, x_min:x_max]
         ocr_results = self.reader.readtext(img_cell_crop)
         text = self.__get_ocr_text(ocr_results)
         return text
-    
 
     def __get_ocr_text(self, ocr_results):
         img_text = ""
-        for (bbox, text, prob) in ocr_results:
+        for bbox, text, prob in ocr_results:
             img_text = img_text + text
         return img_text
 
-    
     def __split_words_to_rows_and_columns(self, cropped_table_image):
         ext_df = self.__find_text(cropped_table_image)
-        ext_df['left_rounded'] = ext_df['left'] // 20
-        ext_df = ext_df.sort_values(['left_rounded', 'top'], ascending=[True, True])
+        ext_df["left_rounded"] = ext_df["left"] // 20
+        ext_df = ext_df.sort_values(["left_rounded", "top"], ascending=[True, True])
 
         all_table_rows = []
         table_row = TableRow()
@@ -231,10 +226,10 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         # kym rastie y-ova suradnica, jedna sa o novy riadok
         # ked pride k nahlemu skoku v y-ovej suradnici (zrazu bude mala, predtym bola velka),
         # sme uz znovu niekde na vrchu tabulky a jedna sa o novy stlpec
-        previous_y = row['top']
+        previous_y = row["top"]
         idx_start = 1
         for index, row in ext_df[idx_start:].iterrows():
-            current_y = row['top']
+            current_y = row["top"]
             if current_y > previous_y:
                 table_row = TableRow()
                 word = TableWord(row)
@@ -272,7 +267,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
 
         for i in range(0, len(extracted_rows)):
             for gap in extracted_rows[i].gaps:
-                spacing_mat[i][gap[0]:gap[1]] = 1
+                spacing_mat[i][gap[0] : gap[1]] = 1
 
         resulting_columns = spacing_mat.prod(axis=0)
         final_gaps = []
@@ -287,11 +282,11 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                 start = -1
 
         if start != -1:
-            gap_width = (image_width-1) - start
+            gap_width = (image_width - 1) - start
             gap_middle_point = start + gap_width // 2
             final_gaps.append(gap_middle_point)
 
-        final_gaps.append(image_width-1)
+        final_gaps.append(image_width - 1)
         if 0 not in final_gaps and 1 not in final_gaps:
             final_gaps.insert(0, 1)
 
@@ -304,7 +299,9 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                 previous_column = final_gaps[column_gap_idx - 1]
 
                 cell_y_min, cell_y_max = row.get_cell_y_range(current_column, previous_column)
-                row_column_content = self.__get_cell_text(np.array(cropped_table_image), cell_y_min, cell_y_max, previous_column, current_column)
+                row_column_content = self.__get_cell_text(
+                    np.array(cropped_table_image), cell_y_min, cell_y_max, previous_column, current_column
+                )
 
                 final_row.append(row_column_content)
 
@@ -312,12 +309,11 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
 
         return final_table
 
-
     def detect_tables(self):
         all_images = self.fileHandler.get_directory_content(PATH_TO_IMGS)
         all_tables_in_doc = {}
         for img_name_with_path in all_images:
-            page_number = int(img_name_with_path[img_name_with_path.find('-')+1 : img_name_with_path.find('.')])
+            page_number = int(img_name_with_path[img_name_with_path.find("-") + 1 : img_name_with_path.find(".")])
             tables_on_page = self.__yolo_detect(img_name_with_path)
             all_tables_in_doc[page_number] = tables_on_page
 

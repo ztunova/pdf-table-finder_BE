@@ -25,6 +25,7 @@ class SingleTableRequest(BaseModel):
     lower_right_x: float
     lower_right_y: float
 
+
 class TableData(BaseModel):
     id: str
     title: str
@@ -32,8 +33,10 @@ class TableData(BaseModel):
     coordinates: Point
     extractedData: List[List[Optional[str]]]
 
+
 class ExportTablesRequest(BaseModel):
     data: Dict[str, TableData]
+
 
 class TableDetectionMethod(str, Enum):
     PYMU = "pymu"
@@ -44,6 +47,7 @@ class TableExtractionMethod(str, Enum):
     PYMU = "pymu"
     YOLO = "yolo"
     CHATGPT = "chatgpt"
+
 
 class ExportFormat(str, Enum):
     EXCEL = "excel"

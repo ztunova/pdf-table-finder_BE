@@ -29,9 +29,9 @@ class TableExtractionService:
 
         # replace empty/ blank strings with NaN and drop all empty columns and rows
         extracted_data_as_df = pd.DataFrame(extracted_table_data)
-        extracted_data_as_df = extracted_data_as_df.replace(r'^\s*$', np.nan, regex=True)
-        extracted_data_as_df.dropna(how='all', inplace=True)
-        extracted_data_as_df.dropna(how='all', axis=1, inplace=True)
+        extracted_data_as_df = extracted_data_as_df.replace(r"^\s*$", np.nan, regex=True)
+        extracted_data_as_df.dropna(how="all", inplace=True)
+        extracted_data_as_df.dropna(how="all", axis=1, inplace=True)
         extracted_data_as_df = extracted_data_as_df.fillna("")
         extracted_table_data = extracted_data_as_df.values.tolist()
 

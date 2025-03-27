@@ -31,7 +31,7 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
                     lowerRightX=table.bbox[2],
                     lowerRightY=table.bbox[3],
                 )
-                
+
                 percentage_coords = self.helper.absolute_coords_to_percentage(table_coords, page_width, page_height)
                 tables_on_page_bboxes.append(percentage_coords)
             all_tables_in_doc[page.number] = tables_on_page_bboxes

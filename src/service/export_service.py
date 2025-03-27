@@ -21,18 +21,18 @@ class ExportService:
     def export_to_csv(self, data: ExportTablesRequest):
         data = data.data
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED, False) as zip_file:
+        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
             for key, value in data.items():
                 csv_buffer = io.BytesIO()
 
                 table_data = pd.DataFrame(value.extractedData)
                 table_data.to_csv(csv_buffer, index=False, header=False)
-                
+
                 csv_buffer.seek(0)
-                
+
                 sanitized_title = value.title.translate({ord(c): "_" for c in "[]:*?/\\"})
                 file_name = f"{sanitized_title}.csv"
                 zip_file.writestr(file_name, csv_buffer.getvalue())
-        
+
         zip_buffer.seek(0)
         return zip_buffer
