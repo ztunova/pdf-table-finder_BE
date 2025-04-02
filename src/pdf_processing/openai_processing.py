@@ -82,8 +82,8 @@ class OpenAiProcessing(TableExtractionInterface):
             table_body[i] = list(map(lambda x: x.strip(), table_body[i]))
         return table_body
 
-    def extract_tabular_data(self, rectangle_data: SingleTableRequest):
-        table_image = self.helper.crop_image(rectangle_data)
+    def extract_tabular_data(self, pdf_name: str, rectangle_data: SingleTableRequest):
+        table_image = self.helper.crop_image(pdf_name, rectangle_data)
         base64_image = self.__encode_image(table_image)
         gpt_answer = self.__get_chatgpt_answer(base64_image)
         result = self.__parse_markdown_table(gpt_answer)

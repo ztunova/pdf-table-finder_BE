@@ -10,12 +10,12 @@ class TableDetectionService:
             TableDetectionMethod.YOLO: yolo_detection,
         }
 
-    def detect_tables(self, detection_method: TableDetectionMethod):
+    def detect_tables(self, pdf_name: str, detection_method: TableDetectionMethod):
         if detection_method not in self.__detection_strategies:
             raise InvalidTableMethodException(detection_method)
 
         strategy = self.__detection_strategies[detection_method]
-        detected_tables = strategy.detect_tables()
+        detected_tables = strategy.detect_tables(pdf_name=pdf_name)
         result = TableDetectionResponse(tables=detected_tables)
 
         for key, value in result.tables.items():

@@ -1,4 +1,6 @@
+import os
 import pymupdf
+from src.constants import PATH_TO_PDFS
 from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.file_handler import FileHandler
@@ -12,8 +14,8 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
         self.helper = ServiceHelper()
 
     # returns coordinates of top lef and bottom right corner
-    def detect_tables(self):
-        pdf_with_dir = self.file_handler.get_pdf_name_with_directory()
+    def detect_tables(self, pdf_name: str):
+        pdf_with_dir = os.path.join(PATH_TO_PDFS, pdf_name)
         doc = pymupdf.open(pdf_with_dir)
         all_tables_in_doc = {}
         for page in doc:
@@ -36,12 +38,10 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
                 tables_on_page_bboxes.append(percentage_coords)
             all_tables_in_doc[page.number] = tables_on_page_bboxes
 
-        output_path_pdf = self.file_handler.get_pdf_result_output()
-        doc.save(output_path_pdf)
         return all_tables_in_doc
 
-    def extract_tabular_data(self, rectangle_data: SingleTableRequest):
-        pdf_with_dir = self.file_handler.get_pdf_name_with_directory()
+    def extract_tabular_data(self, pdf_name: str, rectangle_data: SingleTableRequest):
+        pdf_with_dir = os.path.join(PATH_TO_PDFS, pdf_name)
         doc = pymupdf.open(pdf_with_dir)
         page = doc[rectangle_data.pdf_page_number]
         page_width = page.rect.width
@@ -55,10 +55,6 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
             absolute_coords.lower_right_y,
         )
         page.draw_rect(table_box, color=(1, 0, 0), width=2)
-
-        # for testing purposes
-        output_path_pdf = self.file_handler.get_pdf_result_output()
-        doc.save(output_path_pdf)
 
         found_tables = page.find_tables(
             clip=table_box, horizontal_strategy="text", vertical_strategy="text", min_words_horizontal=3

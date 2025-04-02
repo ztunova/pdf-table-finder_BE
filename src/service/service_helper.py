@@ -7,8 +7,8 @@ from src.custom_types.api_types import Point, SingleTableRequest
 
 class ServiceHelper:
     # receives percentage coords
-    def crop_image(self, request: SingleTableRequest):
-        image_path = PATH_TO_IMGS + "/page-%i.png" % request.pdf_page_number
+    def crop_image(self, pdf_name: str, request: SingleTableRequest):
+        image_path = PATH_TO_IMGS + '/' + pdf_name.removesuffix('.pdf') + "/page-%i.png" % request.pdf_page_number
         img = np.array(Image.open(image_path))
         img_height, img_width, img_channels = img.shape
         absolute_coords = self.percentage_coords_to_absolute(request, img_width, img_height)

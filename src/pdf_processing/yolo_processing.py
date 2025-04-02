@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 import pandas
 from ultralyticsplus import YOLO, render_result
-from src.constants import PATH_TO_IMGS
+from src.constants import EASYOCR_MODEL_STORAGE_DIRECTORY, PATH_TO_IMGS
 from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.custom_types.table_types import TableRow, TableWord
@@ -19,10 +19,10 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
     def __init__(self):
         super().__init__()
         self.fileHandler = FileHandler()
-        self.reader = easyocr.Reader(["en"])
+        self.reader = easyocr.Reader(["en"], download_enabled=False)
         self.helper = ServiceHelper()
 
-    def __yolo_detect(self, image_name: str):
+    def __yolo_detect(self, pdf_name: str, image_name: str):
         # load model
         model = YOLO("foduucom/table-detection-and-extraction")
 
@@ -32,8 +32,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         model.overrides["agnostic_nms"] = False  # NMS class-agnostic
         model.overrides["max_det"] = 1000  # maximum number of detections per image
 
-        image_path = os.path.join(PATH_TO_IMGS, image_name)
-        image_name_without_suffix = image_name.removesuffix(".png")
+        image_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix('.pdf'), image_name)
 
         img = np.array(Image.open(image_path))
         img_height, img_width, img_channels = img.shape
@@ -59,12 +58,6 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
             )
 
             percentage_coords = self.helper.absolute_coords_to_percentage(table_coords, img_width, img_height)
-
-            # cropping
-            # cropped_image = img[y1:y2, x1:x2]
-            # cropped_image = Image.fromarray(cropped_image)
-            # cropped_image.save(PATH_TO_RESULTS + "/" + image_name_without_suffix + "_table-" + str(table_cout) + ".png")
-            # table_cout += 1
             tables_on_page.append(percentage_coords)
 
         return tables_on_page
@@ -309,19 +302,20 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
 
         return final_table
 
-    def detect_tables(self):
-        all_images = self.fileHandler.get_directory_content(PATH_TO_IMGS)
+    def detect_tables(self, pdf_name: str):
+        pdf_images_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix('.pdf'))
+        all_images = self.fileHandler.get_directory_content(pdf_images_path)
         all_tables_in_doc = {}
         for img_name_with_path in all_images:
             page_number = int(img_name_with_path[img_name_with_path.find("-") + 1 : img_name_with_path.find(".")])
-            tables_on_page = self.__yolo_detect(img_name_with_path)
+            tables_on_page = self.__yolo_detect(pdf_name, img_name_with_path)
             all_tables_in_doc[page_number] = tables_on_page
 
         return all_tables_in_doc
 
-    def extract_tabular_data(self, rectangle_data: SingleTableRequest):
+    def extract_tabular_data(self, pdf_name: str, rectangle_data: SingleTableRequest):
         # get only table part from page image
-        cropped_table_image = self.helper.crop_image(request=rectangle_data)
+        cropped_table_image = self.helper.crop_image(pdf_name=pdf_name, request=rectangle_data)
         # cv2.imwrite(PATH_TO_RESULTS + '/test.png', cropped_table_image)
         result = self.__split_words_to_rows_and_columns(cropped_table_image)
         return result

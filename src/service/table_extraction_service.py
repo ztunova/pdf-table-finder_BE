@@ -18,12 +18,12 @@ class TableExtractionService:
             TableExtractionMethod.CHATGPT: gpt_extraction,
         }
 
-    def extract_table_data(self, extraction_method: TableExtractionMethod, rectangle_data: SingleTableRequest):
+    def extract_table_data(self, pdf_name: str, extraction_method: TableExtractionMethod, rectangle_data: SingleTableRequest):
         if extraction_method not in self.__extraction_strategies:
             raise InvalidTableMethodException(extraction_method)
 
         strategy = self.__extraction_strategies[extraction_method]
-        extracted_table_data = strategy.extract_tabular_data(rectangle_data)
+        extracted_table_data = strategy.extract_tabular_data(pdf_name, rectangle_data)
         if not extracted_table_data:
             raise NoTableException(message="No table found withing given coordinates")
 
