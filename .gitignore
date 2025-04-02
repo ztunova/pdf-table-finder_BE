@@ -1,8 +1,12 @@
 /venv
 __pycache__
-data/imgs/*.png
-data/imgs/*.jpg
+# ignore everything except readme.md
+data/imgs/*
+!data/imgs/README.md
+
 data/pdf/*.pdf
 data/results/*.pdf
 data/results/*.png
 .env
+easyocr
+yolo

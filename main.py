@@ -16,7 +16,6 @@ def docs_redirect():
     return RedirectResponse(url="/docs")
 
 
-# For local development with different ports
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -24,13 +23,14 @@ app.add_middleware(
         "http://localhost:8080",  # Vue default
         "http://127.0.0.1:5173",  # Vite default
         "http://localhost:5173",  # Vite alternative
-        # Add any other origins you need
+        "http://127.0.0.1:8000",
+        "https://pdf-table-extractor.dyn.cloud.e-infra.cz",
+        "https://api.pdf-table-extractor.dyn.cloud.e-infra.cz",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(pdf_router)
 app.include_router(exports_router)

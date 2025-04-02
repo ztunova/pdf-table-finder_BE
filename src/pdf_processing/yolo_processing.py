@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 import pandas
 from ultralyticsplus import YOLO, render_result
-from src.constants import EASYOCR_MODEL_STORAGE_DIRECTORY, PATH_TO_IMGS
+from src.constants import PATH_TO_IMGS, YOLO_MODEL_PATH
 from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.custom_types.table_types import TableRow, TableWord
@@ -24,7 +24,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
 
     def __yolo_detect(self, pdf_name: str, image_name: str):
         # load model
-        model = YOLO("foduucom/table-detection-and-extraction")
+        model = YOLO(YOLO_MODEL_PATH)
 
         # set model parameters
         model.overrides["conf"] = 0.25  # NMS confidence threshold
