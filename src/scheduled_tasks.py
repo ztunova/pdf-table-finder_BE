@@ -7,6 +7,7 @@ from src.constants import PATH_TO_IMGS, PATH_TO_PDFS
 def clean_unused_files():
     print("Starting scheduled cleaning...")
     all_pdfs = os.listdir(PATH_TO_PDFS)
+    all_pdfs.remove("README.md")
     current_datetime = datetime.datetime.now()
     for pdf_file in all_pdfs:
         pdf_with_path = os.path.join(PATH_TO_PDFS, pdf_file)
