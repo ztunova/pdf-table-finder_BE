@@ -8,6 +8,9 @@ from src.custom_types.interfaces import TableExtractionInterface
 from src.service.service_helper import ServiceHelper
 
 
+DEFAULT_PROMPT = "Format as excel table, data are as numbers."
+FORMAT_SUFFIX = "Return table as markdown without any additional description."
+
 class OpenAiProcessing(TableExtractionInterface):
     def __init__(self):
         super().__init__()
@@ -31,7 +34,11 @@ class OpenAiProcessing(TableExtractionInterface):
 
         return base64_encoded
 
-    def __get_chatgpt_answer(self, base64_table_image) -> str:
+    def __get_chatgpt_answer(self, base64_table_image, custom_prompt=DEFAULT_PROMPT) -> str:
+        prompt = custom_prompt if custom_prompt else DEFAULT_PROMPT
+        full_prompt = f"{prompt} {FORMAT_SUFFIX}"
+        print("full prompt: ", full_prompt)
+
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -40,7 +47,7 @@ class OpenAiProcessing(TableExtractionInterface):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Format as excel table, data are as numbers. Return table as markdown without any additional description.",
+                            "text": full_prompt,
                         },
                         {
                             "type": "image_url",
@@ -85,6 +92,6 @@ class OpenAiProcessing(TableExtractionInterface):
     def extract_tabular_data(self, pdf_name: str, rectangle_data: SingleTableRequest):
         table_image = self.helper.crop_image(pdf_name, rectangle_data)
         base64_image = self.__encode_image(table_image)
-        gpt_answer = self.__get_chatgpt_answer(base64_image)
+        gpt_answer = self.__get_chatgpt_answer(base64_image, rectangle_data.custom_prompt)
         result = self.__parse_markdown_table(gpt_answer)
         return result

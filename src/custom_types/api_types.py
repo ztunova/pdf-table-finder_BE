@@ -24,6 +24,7 @@ class SingleTableRequest(BaseModel):
     upper_left_y: float
     lower_right_x: float
     lower_right_y: float
+    custom_prompt: Optional[str] = None
 
 
 class TableData(BaseModel):

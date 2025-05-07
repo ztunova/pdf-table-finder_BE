@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 
 from src.custom_types.api_types import (
@@ -67,14 +67,16 @@ def upload_pdf_file(
 
 
 # get all tables based on detection method -> dostane v requeste detection method, vrati mapu {strana: [tabulky], ...}
-@pdf_router.get("/{pdf_name}/all_tables/{detection_method}", response_model=TableDetectionResponse, status_code=status.HTTP_200_OK)
+@pdf_router.get(
+    "/{pdf_name}/all_tables/{detection_method}", response_model=TableDetectionResponse, status_code=status.HTTP_200_OK
+)
 def get_all_tables(
     pdf_name: str,
     detection_method: TableDetectionMethod,
     table_detection_service: Annotated[TableDetectionService, Depends(get_table_detection_service)],
 ):
     """
-    Detect/ find tables in PDF file. Returns a list of table bounding boxes per each page of file.   
+    Detect/ find tables in PDF file. Returns a list of table bounding boxes per each page of file.
     NOTE: All coordinates in response represents percentage - they are relative to page width and height
     """
 
@@ -83,7 +85,9 @@ def get_all_tables(
 
 
 # extract table based on extraction method -> dostane v requeste detection method a bbox, vrati [[riadok tabulky], ...]
-@pdf_router.get("/{pdf_name}/table/{extraction_method}", response_model=TableExtractionResponse, status_code=status.HTTP_200_OK)
+@pdf_router.get(
+    "/{pdf_name}/table/{extraction_method}", response_model=TableExtractionResponse, status_code=status.HTTP_200_OK
+)
 def extract_single_table(
     pdf_name: str,
     extraction_method: TableExtractionMethod,
@@ -93,9 +97,10 @@ def extract_single_table(
     upperLeftY: float = Query(..., description="Upper left Y coordinate"),
     lowerRightX: float = Query(..., description="Lower right X coordinate"),
     lowerRightY: float = Query(..., description="Lower right Y coordinate"),
+    customPrompt: Optional[str] = Query(None, description="Custom prompt for ChatGPT extraction method"),
 ):
     """
-    Extract tabular data within given bounding box. 
+    Extract tabular data within given bounding box.
     NOTE: All coordinates in both request and response are handled as percentage - relative to page width and height
     """
 
@@ -105,10 +110,14 @@ def extract_single_table(
         upper_left_y=upperLeftY,
         lower_right_x=lowerRightX,
         lower_right_y=lowerRightY,
+        custom_prompt=customPrompt,
     )
 
-    result = table_extraction_service.extract_table_data(pdf_name=pdf_name, extraction_method=extraction_method, rectangle_data=rectangle)
+    result = table_extraction_service.extract_table_data(
+        pdf_name=pdf_name, extraction_method=extraction_method, rectangle_data=rectangle
+    )
     return result
+
 
 @pdf_router.delete("/{pdf_name}")
 def delete_pdf(
