@@ -22,24 +22,10 @@ class FileHandler:
         directory_content: list[str] = os.listdir(directory_path)
         return directory_content
 
-    def get_pdf_name_with_directory(self) -> str:
-        pdf_file_name: str = self.get_directory_content(PATH_TO_PDFS)[0]
-        return os.path.join(PATH_TO_PDFS, pdf_file_name)
-
-    def get_pdf_result_output(self) -> str:
-        pdf_file_name: str = self.get_directory_content(PATH_TO_PDFS)[0]
-        return os.path.join(PATH_TO_RESULTS, pdf_file_name)
-
-    def __clean_up_directory_content(self, direcotry_path: str) -> None:
-        dir_content: list[str] = self.get_directory_content(direcotry_path)
-        for file_name in dir_content:
-            path = os.path.join(direcotry_path, file_name)
-            os.remove(path)
-
     # strany cislovane od 0
     def __pdf_to_images(self, file_name: str) -> None:
         # get location where pdf converted to imgs will be stored
-        file_name_without_extension = file_name.removesuffix('.pdf')
+        file_name_without_extension = file_name.removesuffix(".pdf")
         pdf_as_imgs_location = os.path.join(PATH_TO_IMGS, file_name_without_extension)
         if not os.path.exists(pdf_as_imgs_location):
             os.makedirs(pdf_as_imgs_location)
@@ -52,26 +38,33 @@ class FileHandler:
             pix = page.get_pixmap(dpi=900)
             pix.save(save_img_path)
 
-    def upload_pdf_file(self, file):
+    def upload_pdf_file(self, file, pdf_id: str):
         if not file.filename.endswith(".pdf"):
             raise NotAPdfFileException()
-        
-        all_pdfs = self.get_directory_content(PATH_TO_PDFS)
-        if file.filename in all_pdfs:
-            self.clean_up_pdf(file.filename)
 
-        file_with_path = os.path.join(PATH_TO_PDFS, file.filename)
+        # append id to the file
+        filename_without_extension = file.filename.removesuffix(".pdf")
+        filename_with_id = f"{filename_without_extension}__{pdf_id}.pdf"
+
+        all_pdfs = self.get_directory_content(PATH_TO_PDFS)
+        if filename_with_id in all_pdfs:
+            self.clean_up_pdf(filename_with_id)
+
+        file_with_path = os.path.join(PATH_TO_PDFS, filename_with_id)
 
         # Save the uploaded file
         with open(file_with_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        self.__pdf_to_images(file_name=file.filename)
+        self.__pdf_to_images(file_name=filename_with_id)
 
     def clean_up_pdf(self, pdf_name):
         # delete pdf
         # delete pdf images
         pdf_path = os.path.join(PATH_TO_PDFS, pdf_name)
-        pdf_imgs_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix('.pdf'))
-        os.remove(pdf_path)
-        shutil.rmtree(pdf_imgs_path)
+        pdf_imgs_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix(".pdf"))
+        try:
+            os.remove(pdf_path)
+            shutil.rmtree(pdf_imgs_path)
+        except FileNotFoundError:
+            print(f"File already deleted: {pdf_path}")

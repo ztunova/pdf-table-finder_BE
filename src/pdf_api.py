@@ -54,15 +54,16 @@ def get_table_extraction_service(
 
 
 # upload pdf -> dostane pdf v requeste, vrati len status code
-@pdf_router.post("/upload")
+@pdf_router.post("/{pdf_id}/upload")
 def upload_pdf_file(
+    pdf_id: str,
     file: UploadFile = File(...),
     pdf_handler: FileHandler = Depends(get_file_handler),
 ):
     """
     Upload new PDF file
     """
-    pdf_handler.upload_pdf_file(file)
+    pdf_handler.upload_pdf_file(file, pdf_id)
     return Response(status_code=status.HTTP_201_CREATED)
 
 
