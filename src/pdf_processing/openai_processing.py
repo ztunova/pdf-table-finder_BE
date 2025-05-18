@@ -37,7 +37,6 @@ class OpenAiProcessing(TableExtractionInterface):
     def __get_chatgpt_answer(self, base64_table_image, custom_prompt=DEFAULT_PROMPT) -> str:
         prompt = custom_prompt if custom_prompt else DEFAULT_PROMPT
         full_prompt = f"{prompt} {FORMAT_SUFFIX}"
-        print("full prompt: ", full_prompt)
 
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",

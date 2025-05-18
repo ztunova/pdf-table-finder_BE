@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 import pandas
 from ultralyticsplus import YOLO, render_result
-from src.constants import PATH_TO_IMGS, YOLO_MODEL_PATH
+from src.constants import PATH_TO_IMGS, PATH_TO_RESULTS, YOLO_MODEL_PATH
 from src.custom_types.api_types import Point, SingleTableRequest
 from src.custom_types.interfaces import TableExtractionInterface, TableDetectionInterface
 from src.custom_types.table_types import TableRow, TableWord
@@ -32,7 +32,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         model.overrides["agnostic_nms"] = False  # NMS class-agnostic
         model.overrides["max_det"] = 1000  # maximum number of detections per image
 
-        image_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix('.pdf'), image_name)
+        image_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix(".pdf"), image_name)
 
         img = np.array(Image.open(image_path))
         img_height, img_width, img_channels = img.shape
@@ -82,18 +82,22 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
             x, y, w, h = cv2.boundingRect(p.reshape(-1, 1, 2))
             cv2.rectangle(mask, (x, y), (x + w, y + h), (255, 255, 255), -2)
 
+        # cv2.imwrite(PATH_TO_RESULTS + '/test.png', mask)
         opening_kernel_size = (10, 10)
         opening_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, opening_kernel_size)
         opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, opening_kernel)
+        # cv2.imwrite(PATH_TO_RESULTS + '/opening.png', opening)
 
         closing_kernel_size = (11, 5)
         closing_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, closing_kernel_size)
         closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, closing_kernel)
+        # cv2.imwrite(PATH_TO_RESULTS + '/closing.png', closing)
 
         contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         for i in range(len(contours)):
             x, y, w, h = cv2.boundingRect(contours[i])
+            # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 5)
             new_bbox = {
                 "left": x,
                 "top": y,
@@ -102,6 +106,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                 "text": "",
             }
             data.append(new_bbox)
+        # cv2.imwrite(PATH_TO_RESULTS + '/found-text2.png', img)
 
         if not data:
             raise NoTableException()
@@ -255,6 +260,15 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         gaps = self.__find_gaps(all_table_rows, image_width)
         extracted_rows = self.__extract_broken_rows(all_table_rows, image_width)
 
+        # gaps_img = cropped_table_image.copy()
+        # for row in extracted_rows:        
+        #     for gap in row.gaps:
+        #             gap_start, gap_end, gap_y, gap_height = gap
+        #             cv2.rectangle(gaps_img, (gap_start, gap_y), (gap_end, gap_y + gap_height), (0, 0, 255), -2)
+        # alpha = 0.4
+        # result = cv2.addWeighted(gaps_img, alpha, cropped_table_image, 1 - alpha, 0)
+        # cv2.imwrite(PATH_TO_RESULTS + '/gaps.png', result)
+
         total_rows = len(extracted_rows)
         spacing_mat = np.zeros((total_rows, image_width), dtype=np.uint8)
 
@@ -270,6 +284,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
                 start = i
             elif resulting_columns[i] == 0 and start != -1:
                 gap_width = i - start
+                # cv2.rectangle(gaps_img, (start, 0), (start+gap_width, 100000), (0, 0, 255), -2)
                 gap_middle_point = start + gap_width // 2
                 final_gaps.append(gap_middle_point)
                 start = -1
@@ -277,11 +292,19 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         if start != -1:
             gap_width = (image_width - 1) - start
             gap_middle_point = start + gap_width // 2
+            # cv2.rectangle(gaps_img, (start, 0), (start+gap_width, 100000), (0, 0, 255), -2)
             final_gaps.append(gap_middle_point)
 
         final_gaps.append(image_width - 1)
         if 0 not in final_gaps and 1 not in final_gaps:
             final_gaps.insert(0, 1)
+
+        # # columns_img = cropped_table_image.copy()
+        # alpha = 0.2
+        # result = cv2.addWeighted(gaps_img, alpha, cropped_table_image, 1 - alpha, 0)
+        # for gap in final_gaps:
+        #     cv2.line(result, (gap, 0), (gap, 100000), (0, 0, 255), 4)
+        # cv2.imwrite(PATH_TO_RESULTS + '/columns.png', result)
 
         # connect strings in columns:
         final_table = []
@@ -303,7 +326,7 @@ class YoloProcessing(TableDetectionInterface, TableExtractionInterface):
         return final_table
 
     def detect_tables(self, pdf_name: str):
-        pdf_images_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix('.pdf'))
+        pdf_images_path = os.path.join(PATH_TO_IMGS, pdf_name.removesuffix(".pdf"))
         all_images = self.fileHandler.get_directory_content(pdf_images_path)
         all_tables_in_doc = {}
         for img_name_with_path in all_images:

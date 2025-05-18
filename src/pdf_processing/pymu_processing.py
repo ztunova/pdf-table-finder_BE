@@ -25,8 +25,8 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
             tables_on_page = page.find_tables()
             tables_on_page_bboxes = []
             for table in tables_on_page.tables:
-                page.draw_rect(table.bbox, color=(0, 1, 0), width=2)
-                page.draw_line((table.bbox[0], table.bbox[1]), (table.bbox[2], table.bbox[3]), color=(0, 1, 0), width=2)
+                # page.draw_rect(table.bbox, color=(0, 1, 0), width=2)
+                # page.draw_line((table.bbox[0], table.bbox[1]), (table.bbox[2], table.bbox[3]), color=(0, 1, 0), width=2)
                 table_coords = Point(
                     upperLeftX=table.bbox[0],
                     upperLeftY=table.bbox[1],
@@ -54,7 +54,7 @@ class PymuProcessing(TableDetectionInterface, TableExtractionInterface):
             absolute_coords.lower_right_x,
             absolute_coords.lower_right_y,
         )
-        page.draw_rect(table_box, color=(1, 0, 0), width=2)
+        # page.draw_rect(table_box, color=(1, 0, 0), width=2)
 
         found_tables = page.find_tables(
             clip=table_box, horizontal_strategy="text", vertical_strategy="text", min_words_horizontal=3

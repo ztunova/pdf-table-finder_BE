@@ -20,7 +20,7 @@ def export_to_file(
     export_service: ExportService = Depends(get_export_service),
 ):
     output = export_service.export_to_excel(data=data)
-    pdf_name_without_extension = pdf_name.removesuffix('.pdf')
+    pdf_name_without_extension = pdf_name.removesuffix(".pdf")
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -35,7 +35,7 @@ def export_to_file(
     export_service: ExportService = Depends(get_export_service),
 ):
     output = export_service.export_to_csv(data=data)
-    pdf_name_without_extension = pdf_name.removesuffix('.pdf')
+    pdf_name_without_extension = pdf_name.removesuffix(".pdf")
     return StreamingResponse(
         output,
         media_type="application/zip",

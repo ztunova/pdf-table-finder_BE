@@ -18,7 +18,9 @@ class TableExtractionService:
             TableExtractionMethod.CHATGPT: gpt_extraction,
         }
 
-    def extract_table_data(self, pdf_name: str, extraction_method: TableExtractionMethod, rectangle_data: SingleTableRequest):
+    def extract_table_data(
+        self, pdf_name: str, extraction_method: TableExtractionMethod, rectangle_data: SingleTableRequest
+    ):
         if extraction_method not in self.__extraction_strategies:
             raise InvalidTableMethodException(extraction_method)
 
