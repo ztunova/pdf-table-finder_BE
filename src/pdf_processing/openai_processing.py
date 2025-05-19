@@ -38,6 +38,8 @@ class OpenAiProcessing(TableExtractionInterface):
         prompt = custom_prompt if custom_prompt else DEFAULT_PROMPT
         full_prompt = f"{prompt} {FORMAT_SUFFIX}"
 
+        print(full_prompt)
+
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
