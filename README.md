@@ -1,4 +1,4 @@
-# PDF Table Finder UI
+# PDF Table Finder Backend
 
 This FastAPI application serves as the backend for a PDF table detection and extraction tool. It exposes a set of endpoints that allow users to:
 
